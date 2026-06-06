@@ -22,10 +22,16 @@ except ImportError:  # Phase 1 local fallback until Sarvam wrapper is implemente
             return text
         return f"[{target_lang}] {text}"
 
-from network_intelligence.broadcast import create_campaign
-from network_intelligence.network import compute_pulse, get_active_groups
-from network_intelligence.news_client import get_trends
-from network_intelligence.privacy import add_noise, k_anonymous_signal
+try:
+    from network_intelligence.broadcast import create_campaign
+    from network_intelligence.network import compute_pulse, get_active_groups
+    from network_intelligence.news_client import get_trends
+    from network_intelligence.privacy import add_noise, k_anonymous_signal
+except ImportError:
+    from .broadcast import create_campaign
+    from .network import compute_pulse, get_active_groups
+    from .news_client import get_trends
+    from .privacy import add_noise, k_anonymous_signal
 
 
 network = Blueprint("network", __name__)
@@ -67,7 +73,8 @@ def pulse():
     lang = _lang_pref()
     if lang != "en-IN":
         headline_key = f"headline_{lang.split('-')[0]}"
-        pulse_data[headline_key] = translate_to(pulse_data["headline_en"], lang, "en-IN")
+        if not pulse_data.get(headline_key):
+            pulse_data[headline_key] = translate_to(pulse_data["headline_en"], lang, "en-IN")
 
     pulse_data["privacy_note"] = (
         f"Aggregated across {pulse_data['merchant_count']} merchants. "
@@ -86,7 +93,7 @@ def news_trends():
     if lang != "en-IN":
         body_key = f"body_{lang.split('-')[0]}"
         for trend in trends:
-            if trend.get("body_en"):
+            if trend.get("body_en") and not trend.get(body_key):
                 trend[body_key] = translate_to(trend["body_en"], lang, "en-IN")
 
     return jsonify({"trends": trends}), 200
@@ -100,10 +107,20 @@ def group_buy():
 @network.route("/api/broadcast", methods=["POST"])
 def broadcast():
     body = request.get_json(silent=True) or {}
-    event_id = body["event_id"]
+    event_id = body.get("event_id")
+    if not event_id:
+        return jsonify({"status": "error", "message": "event_id is required"}), 400
+
     target_segment = body.get("target_segment", {})
+    if target_segment is None:
+        target_segment = {}
+    if not isinstance(target_segment, dict):
+        return jsonify({"status": "error", "message": "target_segment must be an object"}), 400
+
     segment_id = target_segment.get("segment_id", "nearby_2km")
     languages = body.get("languages", ["hi-IN", "mr-IN", "gu-IN", "en-IN"])
+    if not isinstance(languages, list) or not languages:
+        return jsonify({"status": "error", "message": "languages must be a non-empty list"}), 400
 
     prompt = (
         f"Generate a short, friendly customer offer SMS for event: {event_id}. "
@@ -125,7 +142,10 @@ def broadcast():
     if "en-IN" not in messages:
         messages["en-IN"] = base_message
 
-    campaign = create_campaign(event_id, segment_id, messages)
+    try:
+        campaign = create_campaign(event_id, segment_id, messages)
+    except ValueError as exc:
+        return jsonify({"status": "error", "message": str(exc)}), 400
 
     return jsonify(
         {

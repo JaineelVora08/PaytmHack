@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -12,7 +13,7 @@ from urllib.request import Request, urlopen
 
 
 NEWS_KEY = os.getenv("NEWS_API_KEY")
-CACHE_DIR = Path("/tmp/khatavaani_news_cache")
+CACHE_DIR = Path(tempfile.gettempdir()) / "khatavaani_news_cache"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 NEWS_ENDPOINT = "https://newsapi.org/v2/everything"
@@ -75,12 +76,14 @@ def get_trends(region: str = "urban_mumbai") -> list[dict]:
 def _fetch_cached_news(cache_key: str, query: str, ttl_hours: int) -> list[dict]:
     cached = _read_cache(cache_key, ttl_hours)
     if cached is not None:
-        return cached
+        return cached or _fallback_articles(cache_key)
 
     articles = _fetch_news(query)
     if articles:
         _write_cache(cache_key, articles)
-    return articles
+        return articles
+
+    return _fallback_articles(cache_key)
 
 
 def _fetch_news(query: str) -> list[dict]:
@@ -108,6 +111,24 @@ def _fetch_news(query: str) -> list[dict]:
         return []
 
     return payload.get("articles", []) or []
+
+
+def _fallback_articles(cache_key: str) -> list[dict]:
+    fallback = {
+        "cricket": [
+            {
+                "title": "IPL Final demand expected to lift snacks and cold drinks sales",
+                "source": {"name": "Demo News"},
+            }
+        ],
+        "weather": [
+            {
+                "title": "Mumbai heat alert raises ORS and cold beverage demand",
+                "source": {"name": "Demo Weather"},
+            }
+        ],
+    }
+    return fallback.get(cache_key, [])
 
 
 def _read_cache(cache_key: str, ttl_hours: int) -> list[dict] | None:

@@ -1,0 +1,195 @@
+.kv-shell {
+  color: #0f172a;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.kv-topbar,
+.kv-card-header,
+.kv-upload,
+.kv-ask-panel,
+.kv-text-ask {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.kv-topbar,
+.kv-card-header {
+  justify-content: space-between;
+}
+
+.kv-topbar h1,
+.kv-hero h2,
+.kv-card h3 {
+  margin: 0;
+}
+
+.kv-tabs {
+  background: #eef6ff;
+  border-radius: 999px;
+  display: flex;
+  padding: 4px;
+}
+
+.kv-tabs button,
+.kv-upload button,
+.kv-text-ask button,
+.kv-import-button {
+  background: #00baf2;
+  border: 0;
+  border-radius: 999px;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 10px 18px;
+}
+
+.kv-tabs button {
+  background: transparent;
+  color: #075985;
+}
+
+.kv-tabs button.active {
+  background: #00baf2;
+  color: white;
+}
+
+.kv-page {
+  display: grid;
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.kv-hero,
+.kv-card,
+.kv-upload,
+.kv-ask-panel {
+  background: white;
+  border: 1px solid #dbeafe;
+  border-radius: 24px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  padding: 22px;
+}
+
+.kv-hero {
+  background: linear-gradient(135deg, #e0f2fe, #ffffff);
+}
+
+.kv-hero p {
+  color: #475569;
+  margin-bottom: 0;
+}
+
+.kv-eyebrow {
+  color: #00baf2;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  margin: 0 0 6px;
+  text-transform: uppercase;
+}
+
+.kv-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.kv-table-wrap {
+  overflow-x: auto;
+}
+
+.kv-table {
+  border-collapse: collapse;
+  min-width: 100%;
+}
+
+.kv-table th,
+.kv-table td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.kv-table th {
+  color: #64748b;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.kv-muted,
+.kv-card-header span {
+  color: #64748b;
+}
+
+.kv-note,
+.kv-error {
+  border-radius: 16px;
+  padding: 12px 14px;
+}
+
+.kv-note {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.kv-error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.kv-mic {
+  background: #002970;
+  border: 0;
+  border-radius: 999px;
+  color: white;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 800;
+  min-height: 88px;
+  min-width: 160px;
+  padding: 20px;
+}
+
+.kv-mic-recording {
+  background: #ef4444;
+}
+
+.kv-text-ask {
+  flex: 1;
+}
+
+.kv-text-ask input,
+.kv-upload input {
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  flex: 1;
+  padding: 12px 14px;
+}
+
+.kv-answer {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .kv-topbar,
+  .kv-upload,
+  .kv-ask-panel,
+  .kv-text-ask {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .kv-tabs {
+    width: 100%;
+  }
+
+  .kv-tabs button {
+    flex: 1;
+  }
+}

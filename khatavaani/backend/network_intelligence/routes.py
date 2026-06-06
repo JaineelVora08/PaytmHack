@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, Response, jsonify, request
 
 try:
     from database import get_db
@@ -35,6 +35,14 @@ except ImportError:
 
 
 network = Blueprint("network", __name__)
+
+DEFAULT_BROADCAST_MESSAGES = {
+    "en-IN": "Hi! IPL Final tomorrow - get your snacks today. 10% off on Rs 200+!",
+    "hi-IN": "Namaste! Kal IPL Final hai - cold drinks aur snacks aaj hi le lo. Rs 200+ par 10% off!",
+    "mr-IN": "Namaskar! Udya IPL Final aahe - cold drinks aaj gheun ja. Rs 200+ var 10% soot!",
+    "gu-IN": "Namaste! Kale IPL Final chhe - cold drinks ane snacks lai jao. Rs 200+ par 10% chhut!",
+    "ta-IN": "Vanakkam! Naalai IPL Final - cold drinks matrum snacks indre vaangungal. Rs 200+ ku 10% off!",
+}
 
 
 def _merchant_id() -> str:
@@ -84,6 +92,18 @@ def pulse():
     return jsonify({"pulse": pulse_data}), 200
 
 
+@network.route("/api/pulse-audio", methods=["GET"])
+def pulse_audio():
+    lang = _lang_pref()
+    pulse_data = compute_pulse(_region())
+    text = pulse_data.get("headline_hi") if lang == "hi-IN" else pulse_data.get("headline_en")
+    if lang not in {"hi-IN", "en-IN"}:
+        text = translate_to(pulse_data["headline_en"], lang, "en-IN")
+
+    audio_bytes = tts(text or pulse_data["headline_en"], lang) if tts else b""
+    return Response(audio_bytes, mimetype="audio/mpeg")
+
+
 @network.route("/api/news-trends", methods=["GET"])
 def news_trends():
     region = request.args.get("region", _region())
@@ -129,15 +149,16 @@ def broadcast():
     base_message = llm(
         "You are a marketing copywriter for Indian shops. Tone: warm, casual.",
         prompt,
-    )
+    ).strip()
+    if not base_message:
+        base_message = DEFAULT_BROADCAST_MESSAGES["en-IN"]
 
     messages = {}
     for lang in languages:
-        messages[lang] = (
-            base_message
-            if lang == "en-IN"
-            else translate_to(base_message, lang, "en-IN")
-        )
+        translated = base_message if lang == "en-IN" else translate_to(base_message, lang, "en-IN")
+        if translated.startswith(f"[{lang}] "):
+            translated = DEFAULT_BROADCAST_MESSAGES.get(lang, translated)
+        messages[lang] = translated.strip() or DEFAULT_BROADCAST_MESSAGES.get(lang, base_message)
 
     if "en-IN" not in messages:
         messages["en-IN"] = base_message

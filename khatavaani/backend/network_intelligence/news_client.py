@@ -11,14 +11,21 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from dotenv import load_dotenv
+
+
+BASE_DIR = Path(__file__).resolve().parents[1]
+load_dotenv(BASE_DIR.parent.parent / ".env")
+load_dotenv(BASE_DIR / ".env")
+
 
 NEWS_KEY = os.getenv("NEWS_API_KEY")
 CACHE_DIR = Path(tempfile.gettempdir()) / "khatavaani_news_cache"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 NEWS_ENDPOINT = "https://newsapi.org/v2/everything"
-CRICKET_QUERY = "IPL final OR India cricket"
-WEATHER_QUERY = "heat wave OR mumbai weather"
+CRICKET_QUERY = "IPL final OR India cricket match"
+WEATHER_QUERY = "Mumbai heat wave India OR Mumbai weather"
 
 
 def get_trends(region: str = "urban_mumbai") -> list[dict]:
@@ -35,7 +42,8 @@ def get_trends(region: str = "urban_mumbai") -> list[dict]:
             {
                 "id": "ipl_final",
                 "type": "cricket",
-                "title": cricket_news[0].get("title", "India cricket demand spike")[:80],
+                "icon": "🏏",
+                "title": "IPL Final - Kal Shaam 7:30pm",
                 "source": "NewsAPI + Network",
                 "body_en": "Cold drinks, chips, and namkeen demand 3-5x spike expected.",
                 "body_hi": "Cold drinks, chips aur namkeen ki demand 3-5x badh sakti hai.",
@@ -53,7 +61,8 @@ def get_trends(region: str = "urban_mumbai") -> list[dict]:
             {
                 "id": "heat_wave",
                 "type": "weather",
-                "title": weather_news[0].get("title", "Heat wave alert - Mumbai")[:80],
+                "icon": "🌡️",
+                "title": "Heat Wave - Mumbai, Thane, Pune",
                 "source": "NewsAPI + Network",
                 "body_en": "Hot weather can lift ORS, Electral, and cold drinks demand up to 5x.",
                 "body_hi": "Garmi mein ORS, Electral aur cold drinks ki demand 5x tak badh sakti hai.",
@@ -165,6 +174,7 @@ def _festival_calendar(region: str) -> list[dict]:
         {
             "id": "eid",
             "type": "festival",
+            "icon": "🎉",
             "title": "Eid shopping window",
             "source": "Festival Calendar",
             "body_en": "Expected rise in sweets, dry fruits, seviyan, and gifting demand.",
@@ -179,6 +189,7 @@ def _festival_calendar(region: str) -> list[dict]:
         {
             "id": "janmashtami",
             "type": "festival",
+            "icon": "🎉",
             "title": "Janmashtami preparation",
             "source": "Festival Calendar",
             "body_en": "Milk, curd, butter, sweets, and pooja items can see higher demand.",

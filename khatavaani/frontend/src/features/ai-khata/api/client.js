@@ -7,19 +7,59 @@ import {
   mockPulse,
 } from "./mocks";
 
-
-export const USE_MOCK = process.env.REACT_APP_USE_MOCK !== "false";
+const _env = typeof process !== "undefined" && process?.env ? process.env : import.meta.env;
+export const USE_MOCK = (_env.REACT_APP_USE_MOCK || _env.VITE_REACT_APP_USE_MOCK) === "true";
 
 const PHONE_PATTERN = /(?:\+?91[\s-]?)?(?:0[\s-]?)?[6-9](?:[\s-]?\d){9}/g;
 const UPI_PATTERN = /\b[\w.-]+@[\w.-]+\b/g;
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || "http://localhost:5000",
+  baseURL:
+    _env.REACT_APP_KHATAVAANI_API_BASE || _env.REACT_APP_API_BASE_URL || _env.VITE_REACT_APP_KHATAVAANI_API_BASE || _env.VITE_REACT_APP_API_BASE_URL ||
+    "http://localhost:5000",
   headers: {
-    "X-Merchant-ID": process.env.REACT_APP_MERCHANT_ID || "demo_merchant_001",
-    "X-Lang-Preference": process.env.REACT_APP_LANG_PREFERENCE || "hi-IN",
+    "X-Merchant-ID": _env.REACT_APP_MERCHANT_ID || _env.VITE_REACT_APP_MERCHANT_ID || "demo_merchant_001",
+    "X-Lang-Preference": _env.REACT_APP_LANG_PREFERENCE || _env.VITE_REACT_APP_LANG_PREFERENCE || "hi-IN",
   },
 });
+
+export async function scanKhata(imageFile) {
+  const body = new FormData();
+  body.append("image", imageFile);
+  const { data } = await api.post("/api/scan", body, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return stripPII(data);
+}
+
+export async function getVelocity() {
+  const { data } = await api.get("/api/velocity");
+  return stripPII(data);
+}
+
+export async function askKhata(audioBlob, transcript = "") {
+  const body = new FormData();
+  if (audioBlob) {
+    body.append("audio", audioBlob, "question.webm");
+  }
+  if (transcript) {
+    body.append("transcript", transcript);
+  }
+
+  const response = await api.post("/api/ask", body, {
+    headers: { "Content-Type": "multipart/form-data" },
+    responseType: "blob",
+  });
+
+  const audioUrl = response.data?.size ? URL.createObjectURL(response.data) : "";
+  return stripPII({
+    audioUrl,
+    transcript: decodeHeader(response.headers["x-transcript"]),
+    answerText: decodeHeader(response.headers["x-answer-text"]),
+    agent: response.headers["x-agent"],
+    langDetected: response.headers["x-lang-detected"],
+  });
+}
 
 export async function getPulse() {
   if (USE_MOCK) {
@@ -60,6 +100,14 @@ export async function sendBroadcast(payload) {
 
   const response = await api.post("/api/broadcast", payload);
   return stripPII(response.data);
+}
+
+function decodeHeader(value = "") {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
 }
 
 export function stripPII(value) {

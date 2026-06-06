@@ -6,7 +6,6 @@ export const mockPulse = {
     demand_multiplier: 4.0,
     headline_hi: "14 merchants ne ORS 4x stock kiya - IPL final kal hai",
     headline_en: "14 merchants increased ORS stock 4x - IPL final tomorrow",
-    audio_url: "/audio/pulse_hi.mp3",
     viz_data: [14, 18, 22, 40, 56, 72, 96],
     privacy_note: "Aggregated across 14 merchants (k=5 minimum). +/-15% noise applied.",
   },

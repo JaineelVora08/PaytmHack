@@ -8,10 +8,13 @@ import {
 } from "./mocks";
 
 const _env = typeof process !== "undefined" && process?.env ? process.env : import.meta.env;
-export const USE_MOCK = (_env.REACT_APP_USE_MOCK || _env.VITE_REACT_APP_USE_MOCK) === "true";
+// Default to mock=true so the page never goes blank when backend is not running.
+// Set REACT_APP_USE_MOCK=false (or VITE_REACT_APP_USE_MOCK=false) to use live backend.
+export const USE_MOCK = (_env.REACT_APP_USE_MOCK ?? _env.VITE_REACT_APP_USE_MOCK ?? "true") !== "false";
 
 const PHONE_PATTERN = /(?:\+?91[\s-]?)?(?:0[\s-]?)?[6-9](?:[\s-]?\d){9}/g;
-const UPI_PATTERN = /\b[\w.-]+@[\w.-]+\b/g;
+// Narrow UPI pattern: only match recognised UPI handle formats (name@upi, phone@bank etc)
+const UPI_PATTERN = /\b[\w.+-]{3,}@(?:upi|paytm|oksbi|okaxis|okhdfcbank|okicici|ybl|ibl|axl|apl|barodampay|pnb|aubank|kotak|freecharge|phonepe)\b/gi;
 
 const api = axios.create({
   baseURL:

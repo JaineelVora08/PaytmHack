@@ -43,3 +43,11 @@ CREATE TABLE IF NOT EXISTS network_signal (
   demand_index REAL NOT NULL,
   context_tags TEXT
 );
+
+-- Indexes for query performance
+CREATE INDEX IF NOT EXISTS idx_udhaar_merchant_date
+    ON udhaar(merchant_id, entry_date);
+CREATE INDEX IF NOT EXISTS idx_inventory_merchant_item_date
+    ON inventory(merchant_id, item_name, scan_date);
+CREATE INDEX IF NOT EXISTS idx_signal_region_date
+    ON network_signal(region, signal_date);

@@ -68,8 +68,15 @@ def redact_likely_customer_names(text: str) -> str:
     return "\n".join(redacted_lines)
 
 
-def vision_ocr(file_obj, language_code: str = "hi-IN") -> str:
-    """Extract notebook text using Sarvam Vision when configured."""
+def vision_ocr(file_obj, language_code: str = "auto") -> str:
+    """Extract notebook text using Sarvam Vision when configured.
+
+    Pass language_code="auto" (the default) to let Sarvam auto-detect the
+    script in the image. This supports all Indian languages — Hindi, Gujarati,
+    Marathi, Tamil, Telugu, Kannada, Bengali, Odia, Punjabi, and mixed scripts.
+    Pass a specific BCP-47 code (e.g. "hi-IN") only if the caller is certain
+    of the image language.
+    """
 
     client = _client()
     if client is None:
@@ -82,10 +89,13 @@ def vision_ocr(file_obj, language_code: str = "hi-IN") -> str:
         tmp_path = tmp.name
 
     try:
-        job = client.document_intelligence.create_job(
-            language=language_code,
-            output_format="md",
-        )
+        # Omit 'language' when auto-detecting so Sarvam's multilingual OCR
+        # engine picks the right script automatically.
+        job_kwargs: dict = {"output_format": "md"}
+        if language_code and language_code.lower() != "auto":
+            job_kwargs["language"] = language_code
+
+        job = client.document_intelligence.create_job(**job_kwargs)
         job.upload_file(tmp_path)
         job.start()
         status = job.wait_until_complete()
@@ -121,21 +131,42 @@ def llm(system_prompt: str, user_prompt: str, *, temperature: float = 0.1) -> st
 
 
 def stt(audio_file, language_code: str = "auto") -> dict:
+    """Transcribe audio using Sarvam saaras:v3.
+
+    Accepts any file-like object (Flask FileStorage, BytesIO, etc.).
+    The Sarvam SDK expects the file argument as a (filename, bytes, mimetype)
+    tuple — passing a raw file object causes silent failures.
+    """
     client = _client()
     if client is None:
         return {"transcript": "", "language_code": "hi-IN"}
 
     try:
+        # Read raw bytes from whatever file-like object was passed in.
         audio_file.seek(0)
-        kwargs = {"file": audio_file, "model": "saaras:v3", "mode": "transcribe"}
-        if language_code != "auto":
+        audio_bytes = audio_file.read()
+
+        # Determine filename and MIME type from the object if available.
+        filename = getattr(audio_file, "filename", None) or getattr(audio_file, "name", None) or "audio.webm"
+        content_type = getattr(audio_file, "content_type", None) or getattr(audio_file, "mimetype", None) or "audio/webm"
+
+        # Sarvam SDK expects a (filename, bytes, mimetype) tuple for the file parameter.
+        file_tuple = (filename, audio_bytes, content_type)
+
+        kwargs: dict = {"file": file_tuple, "model": "saaras:v3", "mode": "transcribe"}
+        # Omit language_code when "auto" so Sarvam auto-detects the spoken language.
+        if language_code and language_code.lower() != "auto":
             kwargs["language_code"] = language_code
+
         response = client.speech_to_text.transcribe(**kwargs)
         return {
             "transcript": _get_attr(response, "transcript", ""),
             "language_code": _get_attr(response, "language_code", "hi-IN") or "hi-IN",
         }
-    except Exception:
+    except Exception as exc:  # noqa: BLE001
+        import traceback
+        traceback.print_exc()
+        print(f"[sarvam_client] stt() failed: {exc}")
         return {"transcript": "", "language_code": "hi-IN"}
 
 

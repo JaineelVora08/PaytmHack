@@ -37,13 +37,15 @@ def add_noise(count: int) -> int:
 
     The standard deviation is 15% of the count, which keeps most mock outputs
     close to the original number while avoiding exact cross-merchant counts.
+    Minimum returned value is K_MIN (5) — never reveal fewer than 5 merchants.
     """
 
     if count <= 0:
         return 0
 
     noisy_count = random.gauss(mu=count, sigma=count * 0.15)
-    return max(0, round(noisy_count))
+    return max(5, round(noisy_count))  # floor = K_MIN per spec §3
+
 
 
 def k_anonymous_signal(merchant_count: int) -> bool:

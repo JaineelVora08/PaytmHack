@@ -35,7 +35,7 @@ export default function VyaparMandalCard({ group, onJoin }) {
         <div>
           <span className="network-eyebrow network-eyebrow--orange">
             <Users size={16} aria-hidden="true" />
-            Vyapar Mandal
+            Group Buy
           </span>
           <h2 className="vyapar-card__title">{group.item}</h2>
         </div>
@@ -64,7 +64,7 @@ export default function VyaparMandalCard({ group, onJoin }) {
 
       <div className="vyapar-card__progress">
         <div className="vyapar-card__progress-label">
-          <span>{joinedUnits} joined</span>
+          <span>{joinedUnits} committed</span>
           <span>{group.minimum_units} minimum units</span>
         </div>
         <div className="vyapar-card__progress-track">

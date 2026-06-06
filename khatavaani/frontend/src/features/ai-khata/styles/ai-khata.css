@@ -204,10 +204,12 @@
 .network-pulse-card,
 .network-trend-card,
 .vyapar-card,
+.network-feature-pill,
+.ads-broadcast-card,
 .broadcast-modal__panel {
   background: #ffffff;
   border: 1px solid #dbeafe;
-  border-radius: 24px;
+  border-radius: 8px;
   box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
 }
 
@@ -219,7 +221,9 @@
 }
 
 .network-dashboard__header h1,
+.network-dashboard__header h2,
 .network-section-heading h2,
+.network-section-heading h3,
 .network-pulse-card__title,
 .vyapar-card__title,
 .network-trend-card__title,
@@ -264,6 +268,46 @@
   grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.8fr);
 }
 
+.network-feature-strip {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.network-feature-pill {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  min-height: 118px;
+  padding: 16px;
+}
+
+.network-feature-pill svg {
+  color: #00baf2;
+  flex: 0 0 auto;
+}
+
+.network-feature-pill strong,
+.network-feature-pill span {
+  display: block;
+}
+
+.network-feature-pill strong {
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.network-feature-pill span {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.network-feature-section {
+  display: grid;
+  gap: 12px;
+}
+
 .network-dashboard__column,
 .network-trend-list {
   display: grid;
@@ -273,7 +317,28 @@
 .network-section-heading {
   align-items: center;
   display: flex;
+  gap: 16px;
   justify-content: space-between;
+}
+
+.network-section-heading > span {
+  background: #eef6ff;
+  border-radius: 999px;
+  color: #075985;
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 10px;
+}
+
+.network-section-kicker {
+  color: #64748b;
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
 }
 
 .network-eyebrow {
@@ -297,6 +362,11 @@
   grid-template-columns: minmax(0, 1fr) 320px;
   overflow: hidden;
   padding: 24px;
+}
+
+/* When pulse data is unavailable, collapse to single column */
+.network-pulse-card--empty {
+  grid-template-columns: 1fr;
 }
 
 .network-pulse-card__headline {
@@ -323,6 +393,32 @@
 .network-pulse-card__actions {
   display: grid;
   gap: 14px;
+}
+
+.network-insight-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.network-insight-list span {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  color: #334155;
+  display: inline-flex;
+  font-size: 13px;
+  gap: 6px;
+  padding: 8px 10px;
+}
+
+.network-chart-caption {
+  color: #64748b;
+  font-size: 13px;
+  margin: 0;
+  text-align: center;
 }
 
 .network-pulse-chart {
@@ -393,6 +489,14 @@
   gap: 10px;
 }
 
+.network-restock-label {
+  color: #075985;
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+
 .network-impact-list {
   display: flex;
   flex-wrap: wrap;
@@ -416,6 +520,47 @@
   color: #002970;
   display: block;
   font-size: 24px;
+}
+
+.ads-broadcast-card {
+  align-items: center;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  padding: 22px;
+}
+
+.ads-broadcast-card h3,
+.ads-broadcast-card p {
+  margin-bottom: 0;
+}
+
+.ads-broadcast-card p {
+  color: #475569;
+  line-height: 1.55;
+}
+
+.ads-broadcast-card__side {
+  display: grid;
+  gap: 12px;
+}
+
+.ads-broadcast-card__reach {
+  background: #eef6ff;
+  border-radius: 8px;
+  color: #075985;
+  padding: 16px;
+}
+
+.ads-broadcast-card__reach span,
+.ads-broadcast-card__reach small {
+  display: block;
+}
+
+.ads-broadcast-card__reach strong {
+  color: #002970;
+  display: block;
+  font-size: 32px;
 }
 
 .vyapar-card {
@@ -548,14 +693,17 @@
 @media (max-width: 860px) {
   .network-dashboard__header,
   .network-dashboard__grid,
+  .network-feature-strip,
   .network-pulse-card,
   .network-pulse-card__stats,
   .network-trend-card,
-  .vyapar-card__price-row {
+  .vyapar-card__price-row,
+  .ads-broadcast-card {
     grid-template-columns: 1fr;
   }
 
   .network-dashboard__header,
+  .network-section-heading,
   .broadcast-modal__footer {
     align-items: stretch;
     flex-direction: column;

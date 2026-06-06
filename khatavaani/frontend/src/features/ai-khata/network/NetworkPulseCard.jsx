@@ -1,7 +1,7 @@
-import { Megaphone, Play, TrendingUp } from "lucide-react";
+import { MapPin, ShieldCheck, TrendingUp } from "lucide-react";
 
 
-export default function NetworkPulseCard({ pulse, onBroadcast }) {
+export default function NetworkPulseCard({ pulse }) {
   if (!pulse) {
     return (
       <section className="network-pulse-card network-pulse-card--empty">
@@ -13,20 +13,12 @@ export default function NetworkPulseCard({ pulse, onBroadcast }) {
   const bars = pulse.viz_data?.length ? pulse.viz_data : [12, 18, 24, 36, 52, 68, 82];
   const maxBar = Math.max(...bars);
 
-  function playPulseAudio() {
-    if (!pulse.audio_url) {
-      return;
-    }
-
-    new Audio(pulse.audio_url).play();
-  }
-
   return (
     <section className="network-pulse-card">
       <div className="network-pulse-card__content">
         <div className="network-eyebrow">
           <TrendingUp size={16} aria-hidden="true" />
-          Network Pulse
+          Other Merchants Around You
         </div>
 
         <h2 className="network-pulse-card__title">{pulse.category}</h2>
@@ -49,6 +41,17 @@ export default function NetworkPulseCard({ pulse, onBroadcast }) {
           </div>
         </div>
 
+        <div className="network-insight-list">
+          <span>
+            <MapPin size={16} aria-hidden="true" />
+            Nearby merchant behavior, not customer data
+          </span>
+          <span>
+            <ShieldCheck size={16} aria-hidden="true" />
+            k-anonymous and noisy aggregate
+          </span>
+        </div>
+
         <p className="network-privacy-note">{pulse.privacy_note}</p>
       </div>
 
@@ -64,16 +67,7 @@ export default function NetworkPulseCard({ pulse, onBroadcast }) {
           ))}
         </div>
 
-        <div className="network-pulse-card__actions">
-          <button className="network-icon-button" type="button" onClick={playPulseAudio}>
-            <Play size={18} aria-hidden="true" />
-            <span>Play</span>
-          </button>
-          <button className="network-primary-button" type="button" onClick={onBroadcast}>
-            <Megaphone size={18} aria-hidden="true" />
-            <span>Broadcast</span>
-          </button>
-        </div>
+        <p className="network-chart-caption">7-day restocking curve across nearby merchants</p>
       </div>
     </section>
   );

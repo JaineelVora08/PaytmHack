@@ -23,12 +23,12 @@ except ImportError:  # Phase 1 local fallback until Sarvam wrapper is implemente
         return f"[{target_lang}] {text}"
 
 try:
-    from network_intelligence.broadcast import create_campaign
+    from network_intelligence.broadcast import create_campaign, SEGMENTS
     from network_intelligence.network import compute_pulse, get_active_groups
     from network_intelligence.news_client import get_trends
     from network_intelligence.privacy import add_noise, k_anonymous_signal
 except ImportError:
-    from .broadcast import create_campaign
+    from .broadcast import create_campaign, SEGMENTS
     from .network import compute_pulse, get_active_groups
     from .news_client import get_trends
     from .privacy import add_noise, k_anonymous_signal
@@ -178,3 +178,22 @@ def broadcast():
             "privacy_note": "No customer PII exposed. Paytm Ads handles targeting on platform side.",
         }
     ), 200
+
+
+_SEGMENT_LABELS = {
+    "nearby_2km": "Customers within 2km",
+    "lapsed_21d": "Lapsed (no txn 21+ days)",
+    "category_groc": "Bought groceries last 60 days",
+    "festival_buyers": "Past festival shoppers",
+}
+
+
+@network.route("/api/segments", methods=["GET"])
+def segments():
+    """Return available Paytm Ads audience segments for the broadcast UI."""
+    return jsonify({
+        "segments": [
+            {"id": seg_id, "label": _SEGMENT_LABELS.get(seg_id, seg_id), "reach": reach}
+            for seg_id, reach in SEGMENTS.items()
+        ]
+    }), 200

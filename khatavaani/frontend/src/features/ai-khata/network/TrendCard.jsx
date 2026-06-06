@@ -25,6 +25,7 @@ export default function TrendCard({ trend }) {
         <h3 className="network-trend-card__title">{trend.title}</h3>
         <p className="network-trend-card__copy">{trend.body_hi || trend.body_en}</p>
 
+        <span className="network-restock-label">Restock recommendation</span>
         <div className="network-impact-list" aria-label="Expected impact">
           {trend.impact?.map((item) => (
             <span className="network-impact-pill" key={`${trend.id}-${item.item}`}>

@@ -6,6 +6,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .eslintcache
+backend.log
+backend.err.log
+frontend.log
+frontend.err.log
 
 # Python/Backend
 __pycache__/

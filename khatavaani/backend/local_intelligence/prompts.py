@@ -25,7 +25,7 @@ Return strict JSON only: {"agent":"udhaar|inventory|velocity","sql":"..."}.
 
 Allowed tables:
 - udhaar(id, merchant_id, customer_name, amount, type, entry_date)
-- inventory_scans(id, merchant_id, item_name, quantity, unit, scan_date)
+- inventory(id, merchant_id, item_name, category, quantity, unit, scan_date)
 
 Rules:
 - SELECT only.

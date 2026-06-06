@@ -11,7 +11,7 @@ def calculate_velocity(merchant_id: str) -> list[dict]:
     rows = query_rows(
         """
         SELECT item_name, quantity, scan_date
-        FROM inventory_scans
+        FROM inventory
         WHERE merchant_id = :merchant_id
         ORDER BY lower(item_name), scan_date
         """,

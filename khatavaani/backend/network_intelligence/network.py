@@ -13,6 +13,8 @@ def compute_pulse(region: str) -> dict:
         "demand_multiplier": 4.0,
         "headline_en": "14 merchants increased ORS / Electral stock 4x ahead of heat and cricket demand.",
         "headline_hi": "14 merchants ne heat aur cricket demand se pehle ORS / Electral stock 4x badhaya.",
+        "audio_url": "/api/pulse-audio",
+        "viz_data": [14, 18, 22, 40, 56, 72, 96],
     }
 
 

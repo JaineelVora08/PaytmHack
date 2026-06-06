@@ -24,7 +24,9 @@ except ImportError:
         return False
 
 
-load_dotenv(Path(__file__).resolve().parent / ".env")
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR.parent.parent / ".env")
+load_dotenv(BASE_DIR / ".env")
 
 SARVAM_API_KEY = os.getenv("SARVAM_API_KEY", "").strip()
 

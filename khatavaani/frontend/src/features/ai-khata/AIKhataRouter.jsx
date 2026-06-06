@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./styles/ai-khata.css";
 import AskPage from "./local/AskPage";
 import ScanPage from "./local/ScanPage";
+import Dashboard from "./network/Dashboard";
 
 export default function AIKhataRouter() {
   const [tab, setTab] = useState("scan");
@@ -20,10 +21,15 @@ export default function AIKhataRouter() {
           <button className={tab === "ask" ? "active" : ""} onClick={() => setTab("ask")}>
             Ask
           </button>
+          <button className={tab === "network" ? "active" : ""} onClick={() => setTab("network")}>
+            Network
+          </button>
         </nav>
       </header>
 
-      {tab === "scan" ? <ScanPage /> : <AskPage />}
+      {tab === "scan" ? <ScanPage /> : null}
+      {tab === "ask" ? <AskPage /> : null}
+      {tab === "network" ? <Dashboard /> : null}
     </main>
   );
 }

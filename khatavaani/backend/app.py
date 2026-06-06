@@ -1,5 +1,11 @@
 from flask import Flask
 from flask_cors import CORS
+from pathlib import Path
+from dotenv import load_dotenv
+
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR.parent.parent / ".env")
+load_dotenv(BASE_DIR / ".env")
 
 from database import init_db
 from local_intelligence.routes import local

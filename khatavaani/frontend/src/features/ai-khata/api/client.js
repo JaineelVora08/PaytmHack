@@ -7,19 +7,19 @@ import {
   mockPulse,
 } from "./mocks";
 
-export const USE_MOCK = process.env.REACT_APP_USE_MOCK !== "false";
+const _env = typeof process !== "undefined" && process?.env ? process.env : import.meta.env;
+export const USE_MOCK = (_env.REACT_APP_USE_MOCK || _env.VITE_REACT_APP_USE_MOCK) === "true";
 
 const PHONE_PATTERN = /(?:\+?91[\s-]?)?(?:0[\s-]?)?[6-9](?:[\s-]?\d){9}/g;
 const UPI_PATTERN = /\b[\w.-]+@[\w.-]+\b/g;
 
 const api = axios.create({
   baseURL:
-    process.env.REACT_APP_KHATAVAANI_API_BASE ||
-    process.env.REACT_APP_API_BASE_URL ||
+    _env.REACT_APP_KHATAVAANI_API_BASE || _env.REACT_APP_API_BASE_URL || _env.VITE_REACT_APP_KHATAVAANI_API_BASE || _env.VITE_REACT_APP_API_BASE_URL ||
     "http://localhost:5000",
   headers: {
-    "X-Merchant-ID": process.env.REACT_APP_MERCHANT_ID || "demo_merchant_001",
-    "X-Lang-Preference": process.env.REACT_APP_LANG_PREFERENCE || "hi-IN",
+    "X-Merchant-ID": _env.REACT_APP_MERCHANT_ID || _env.VITE_REACT_APP_MERCHANT_ID || "demo_merchant_001",
+    "X-Lang-Preference": _env.REACT_APP_LANG_PREFERENCE || _env.VITE_REACT_APP_LANG_PREFERENCE || "hi-IN",
   },
 });
 

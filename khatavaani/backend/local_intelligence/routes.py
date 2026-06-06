@@ -228,7 +228,7 @@ def _fallback_sql(transcript: str) -> tuple[str, str]:
             "inventory",
             """
             SELECT item_name, quantity, unit, scan_date
-            FROM inventory_scans
+            FROM inventory
             WHERE merchant_id = :merchant_id
             ORDER BY scan_date DESC, item_name
             LIMIT 50
@@ -266,7 +266,7 @@ def _is_safe_sql(sql: str) -> bool:
     if any(word in compact for word in forbidden):
         return False
     table_matches = re.findall(r"\b(?:from|join)\s+([a-z_]+)", compact)
-    return bool(table_matches) and all(table in {"udhaar", "inventory_scans"} for table in table_matches)
+    return bool(table_matches) and all(table in {"udhaar", "inventory"} for table in table_matches)
 
 
 def _audio_response(audio_bytes: bytes, transcript: str, answer: str, agent: str, lang: str) -> Response:

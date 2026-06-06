@@ -40,10 +40,15 @@ export async function getVelocity() {
   return stripPII(data);
 }
 
+export async function getLocalRecords() {
+  const { data } = await api.get("/api/records");
+  return stripPII(data);
+}
+
 export async function askKhata(audioBlob, transcript = "") {
   const body = new FormData();
   if (audioBlob) {
-    body.append("audio", audioBlob, "question.webm");
+    body.append("audio", audioBlob, audioFilename(audioBlob.type));
   }
   if (transcript) {
     body.append("transcript", transcript);
@@ -62,6 +67,20 @@ export async function askKhata(audioBlob, transcript = "") {
     agent: response.headers["x-agent"],
     langDetected: response.headers["x-lang-detected"],
   });
+}
+
+function audioFilename(type = "") {
+  const mime = type.split(";", 1)[0].toLowerCase();
+  if (mime === "audio/mp4") {
+    return "question.m4a";
+  }
+  if (mime === "audio/ogg" || mime === "audio/opus") {
+    return "question.ogg";
+  }
+  if (mime === "audio/wav") {
+    return "question.wav";
+  }
+  return "question.webm";
 }
 
 export async function getPulse() {

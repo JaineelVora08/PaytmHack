@@ -58,7 +58,7 @@ export default function AskPage() {
       </section>
 
       <div className="kv-ask-panel">
-        <MicButton disabled={loading} onRecording={askWithAudio} />
+        <MicButton disabled={loading} onError={setError} onRecording={askWithAudio} />
         <form className="kv-text-ask" onSubmit={askWithText}>
           <input
             placeholder="Demo fallback: type a question if Sarvam STT is not configured"

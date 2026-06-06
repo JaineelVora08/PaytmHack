@@ -191,7 +191,7 @@ def scan():
             "status": "ok",
             "udhaar": udhaar,
             "inventory": inventory,
-            "privacy_note": "Customer data stored locally, never sent to network",
+            "privacy_note": f"Saved {len(udhaar)} udhaar and {len(inventory)} inventory records to the local database.",
         }
     ), 200
 
@@ -234,8 +234,40 @@ def velocity():
     return jsonify({"velocity": calculate_velocity(_merchant_id())}), 200
 
 
+@local.route("/api/records", methods=["GET"])
+def records():
+    merchant_id = _merchant_id()
+    udhaar = query_rows(
+        """
+        SELECT customer_name, amount, type, entry_date
+        FROM udhaar
+        WHERE merchant_id = :merchant_id
+        ORDER BY entry_date DESC, id DESC
+        LIMIT 100
+        """,
+        {"merchant_id": merchant_id},
+    )
+    inventory = query_rows(
+        """
+        SELECT item_name, quantity, unit, scan_date
+        FROM inventory
+        WHERE merchant_id = :merchant_id
+          AND scan_date = (
+              SELECT MAX(latest.scan_date)
+              FROM inventory latest
+              WHERE latest.merchant_id = inventory.merchant_id
+                AND lower(latest.item_name) = lower(inventory.item_name)
+          )
+        ORDER BY scan_date DESC, item_name
+        LIMIT 100
+        """,
+        {"merchant_id": merchant_id},
+    )
+    return jsonify({"udhaar": udhaar, "inventory": inventory}), 200
+
+
 def _extract_records(ocr_text: str) -> dict:
-    sanitized_text = redact_likely_customer_names(strip_customer_pii(ocr_text))
+    sanitized_text = strip_customer_pii(ocr_text)
     model_response = llm(
         EXTRACT_RECORDS_SYSTEM,
         f"OCR text with contact PII masked:\n{sanitized_text}",
@@ -245,7 +277,7 @@ def _extract_records(ocr_text: str) -> dict:
     return {
         "udhaar": _merge_rows(
             heuristic["udhaar"],
-            _remove_masked_customers(extracted["udhaar"]),
+            extracted["udhaar"],
             ("customer_name", "amount", "type", "entry_date"),
         ),
         "inventory": _merge_rows(
@@ -277,6 +309,7 @@ def _parse_json_records(text: str) -> dict:
 def _heuristic_extract(text: str) -> dict:
     udhaar: list[dict] = []
     inventory: list[dict] = []
+    current_date = date.today().isoformat()
 
     for raw_line in (text or "").splitlines():
         line = raw_line.strip(" -|\t")
@@ -284,8 +317,8 @@ def _heuristic_extract(text: str) -> dict:
             continue
 
         normalized_date = _line_date(line)
-        if not normalized_date:
-            continue
+        if normalized_date:
+            current_date = normalized_date
 
         lower = line.lower()
         qty_match = QTY_PATTERN.search(line)
@@ -298,7 +331,7 @@ def _heuristic_extract(text: str) -> dict:
                         "item_name": item_name,
                         "quantity": float(qty_match.group(1)),
                         "unit": "units",
-                        "scan_date": normalized_date,
+                        "scan_date": current_date,
                     }
                 )
             continue
@@ -314,7 +347,7 @@ def _heuristic_extract(text: str) -> dict:
                         "customer_name": customer_name,
                         "amount": float(amount_match.replace(",", "")),
                         "type": row_type,
-                        "entry_date": normalized_date,
+                        "entry_date": current_date,
                     }
                 )
 
@@ -778,11 +811,26 @@ def _clean_name(value: str) -> str:
 
 def _clean_udhaar(row: dict) -> dict | None:
     try:
+        customer_name = str(row["customer_name"]).strip()
+        if not customer_name:
+            return None
+        amount = float(row["amount"])
+        row_type = row.get("type", "debit") if row.get("type") in {"debit", "credit"} else "debit"
+        
+        entry_date_val = row.get("entry_date")
+        if entry_date_val:
+            try:
+                entry_date = date.fromisoformat(str(entry_date_val)[:10]).isoformat()
+            except ValueError:
+                entry_date = date.today().isoformat()
+        else:
+            entry_date = date.today().isoformat()
+            
         return {
-            "customer_name": str(row["customer_name"]).strip(),
-            "amount": float(row["amount"]),
-            "type": row.get("type", "debit") if row.get("type") in {"debit", "credit"} else "debit",
-            "entry_date": date.fromisoformat(str(row["entry_date"])[:10]).isoformat(),
+            "customer_name": customer_name,
+            "amount": amount,
+            "type": row_type,
+            "entry_date": entry_date,
         }
     except (KeyError, TypeError, ValueError):
         return None
@@ -790,11 +838,26 @@ def _clean_udhaar(row: dict) -> dict | None:
 
 def _clean_inventory(row: dict) -> dict | None:
     try:
+        item_name = str(row["item_name"]).strip()
+        if not item_name:
+            return None
+        quantity = float(row["quantity"])
+        unit = str(row.get("unit", "units")).strip() or "units"
+        
+        scan_date_val = row.get("scan_date")
+        if scan_date_val:
+            try:
+                scan_date = date.fromisoformat(str(scan_date_val)[:10]).isoformat()
+            except ValueError:
+                scan_date = date.today().isoformat()
+        else:
+            scan_date = date.today().isoformat()
+            
         return {
-            "item_name": str(row["item_name"]).strip(),
-            "quantity": float(row["quantity"]),
-            "unit": str(row.get("unit", "units")).strip() or "units",
-            "scan_date": date.fromisoformat(str(row["scan_date"])[:10]).isoformat(),
+            "item_name": item_name,
+            "quantity": quantity,
+            "unit": unit,
+            "scan_date": scan_date,
         }
     except (KeyError, TypeError, ValueError):
         return None

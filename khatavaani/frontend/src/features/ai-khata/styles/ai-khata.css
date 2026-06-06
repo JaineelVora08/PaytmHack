@@ -148,11 +148,20 @@
   border-radius: 999px;
   color: white;
   cursor: pointer;
+  display: grid;
   font-size: 18px;
   font-weight: 800;
+  gap: 4px;
+  justify-items: center;
   min-height: 88px;
-  min-width: 160px;
+  min-width: 190px;
   padding: 20px;
+}
+
+.kv-mic small {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .kv-mic-recording {

@@ -1,13 +1,34 @@
-import React, { useState } from "react";
-import { scanKhata, getVelocity } from "../api/client";
+import React, { useEffect, useState } from "react";
+import { getLocalRecords, scanKhata, getVelocity } from "../api/client";
 import ResultsTable from "./ResultsTable";
 
 export default function ScanPage() {
   const [image, setImage] = useState(null);
   const [result, setResult] = useState(null);
+  const [records, setRecords] = useState({ udhaar: [], inventory: [] });
   const [velocity, setVelocity] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    refreshLocalData();
+  }, []);
+
+  async function refreshLocalData() {
+    try {
+      const [recordResult, velocityResult] = await Promise.all([
+        getLocalRecords(),
+        getVelocity(),
+      ]);
+      setRecords({
+        udhaar: recordResult.udhaar || [],
+        inventory: recordResult.inventory || [],
+      });
+      setVelocity(velocityResult.velocity || []);
+    } catch (err) {
+      setError(err?.response?.data?.error || "Could not load local khata records.");
+    }
+  }
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -21,8 +42,11 @@ export default function ScanPage() {
     try {
       const scanResult = await scanKhata(image);
       setResult(scanResult);
-      const velocityResult = await getVelocity();
-      setVelocity(velocityResult.velocity || []);
+      setRecords((current) => ({
+        udhaar: [...(scanResult.udhaar || []), ...current.udhaar],
+        inventory: [...(scanResult.inventory || []), ...current.inventory],
+      }));
+      await refreshLocalData();
     } catch (err) {
       setError(err?.response?.data?.error || "Scan failed. Check backend and API key.");
     } finally {
@@ -56,8 +80,8 @@ export default function ScanPage() {
       {result?.privacy_note ? <div className="kv-note">{result.privacy_note}</div> : null}
 
       <div className="kv-grid">
-        <ResultsTable title="Udhaar" rows={result?.udhaar || []} />
-        <ResultsTable title="Inventory" rows={result?.inventory || []} />
+        <ResultsTable title="Udhaar" rows={records.udhaar} />
+        <ResultsTable title="Inventory" rows={records.inventory} />
         <ResultsTable title="Velocity" rows={velocity} emptyText="Need two dated scans per item." />
       </div>
     </div>

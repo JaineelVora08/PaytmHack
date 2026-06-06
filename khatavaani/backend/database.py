@@ -154,34 +154,69 @@ def insert_inventory_rows(merchant_id: str, rows: list[dict], source_scan_id: st
 
     with get_db() as conn:
         for row in rows:
-            cursor = conn.execute(
+            # Check if there is an existing row for the same merchant, item_name (case-insensitive), and scan_date
+            existing = conn.execute(
                 """
-                INSERT INTO inventory(
-                    merchant_id, item_name, category, quantity, scan_date, unit, source_scan_id
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                SELECT id FROM inventory
+                WHERE merchant_id = ? AND lower(item_name) = lower(?) AND scan_date = ?
                 """,
-                (
-                    merchant_id,
-                    row["item_name"],
-                    row.get("category"),
-                    float(row["quantity"]),
-                    row["scan_date"],
-                    row.get("unit", "units"),
-                    source_scan_id,
-                ),
-            )
-            inserted.append(
-                {
-                    "id": cursor.lastrowid,
-                    "item_name": row["item_name"],
-                    "quantity": float(row["quantity"]),
-                    "scan_date": row["scan_date"],
-                    "unit": row.get("unit", "units"),
-                }
-            )
+                (merchant_id, row["item_name"], row["scan_date"]),
+            ).fetchone()
+
+            if existing:
+                conn.execute(
+                    """
+                    UPDATE inventory
+                    SET quantity = ?, unit = ?, source_scan_id = ?, category = COALESCE(?, category)
+                    WHERE id = ?
+                    """,
+                    (
+                        float(row["quantity"]),
+                        row.get("unit", "units"),
+                        source_scan_id,
+                        row.get("category"),
+                        existing["id"],
+                    ),
+                )
+                inserted.append(
+                    {
+                        "id": existing["id"],
+                        "item_name": row["item_name"],
+                        "quantity": float(row["quantity"]),
+                        "scan_date": row["scan_date"],
+                        "unit": row.get("unit", "units"),
+                    }
+                )
+            else:
+                cursor = conn.execute(
+                    """
+                    INSERT INTO inventory(
+                        merchant_id, item_name, category, quantity, scan_date, unit, source_scan_id
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        merchant_id,
+                        row["item_name"],
+                        row.get("category"),
+                        float(row["quantity"]),
+                        row["scan_date"],
+                        row.get("unit", "units"),
+                        source_scan_id,
+                    ),
+                )
+                inserted.append(
+                    {
+                        "id": cursor.lastrowid,
+                        "item_name": row["item_name"],
+                        "quantity": float(row["quantity"]),
+                        "scan_date": row["scan_date"],
+                        "unit": row.get("unit", "units"),
+                    }
+                )
 
     return inserted
+
 
 
 def query_rows(sql: str, params: dict) -> list[dict]:

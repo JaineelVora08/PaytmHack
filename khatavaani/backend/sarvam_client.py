@@ -148,7 +148,13 @@ def stt(audio_file, language_code: str = "auto") -> dict:
 
         # Determine filename and MIME type from the object if available.
         filename = getattr(audio_file, "filename", None) or getattr(audio_file, "name", None) or "audio.webm"
-        content_type = getattr(audio_file, "content_type", None) or getattr(audio_file, "mimetype", None) or "audio/webm"
+        raw_content_type = (
+            getattr(audio_file, "content_type", None)
+            or getattr(audio_file, "mimetype", None)
+            or "audio/webm"
+        )
+        content_type = _sarvam_audio_content_type(raw_content_type)
+        filename = _filename_for_content_type(filename, content_type)
 
         # Sarvam SDK expects a (filename, bytes, mimetype) tuple for the file parameter.
         file_tuple = (filename, audio_bytes, content_type)
@@ -205,6 +211,30 @@ def translate_to(text: str, target_lang: str, source_lang: str = "en-IN") -> str
         return _get_attr(response, "translated_text", "") or _get_attr(response, "output", "") or str(response)
     except Exception:
         return f"[{target_lang}] {text}"
+
+
+def _sarvam_audio_content_type(content_type: str) -> str:
+    """Normalize browser recorder MIME types to Sarvam's allowed file types."""
+
+    normalized = (content_type or "audio/webm").split(";", 1)[0].strip().lower()
+    if normalized == "audio/webm":
+        return "audio/webm"
+    if normalized in {"video/webm", "audio/ogg", "audio/opus", "audio/mp4", "audio/wav"}:
+        return normalized
+    return "audio/webm"
+
+
+def _filename_for_content_type(filename: str, content_type: str) -> str:
+    stem = Path(filename or "question").stem or "question"
+    suffix = {
+        "audio/mp4": ".m4a",
+        "audio/ogg": ".ogg",
+        "audio/opus": ".opus",
+        "audio/wav": ".wav",
+        "video/webm": ".webm",
+        "audio/webm": ".webm",
+    }.get(content_type, ".webm")
+    return f"{stem}{suffix}"
 
 
 def _download_document_text(job) -> str:

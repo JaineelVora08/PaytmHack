@@ -21,17 +21,14 @@ def get_active_groups(merchant_id: str) -> list[dict]:
 
     return [
         {
-            "id": "ors_electral_group_001",
-            "merchant_id": merchant_id,
+            "id": "ors_andheri_001",
             "item": "ORS Electral",
-            "status": "active",
             "merchants_count": 4,
-            "minimum_units": 200,
-            "current_units": 145,
-            "mock_group_price": 16.5,
-            "market_price": 22.0,
-            "currency": "INR",
-            "unit": "sachet",
-            "privacy_note": "Merchant participation is aggregated; individual merchant identities are hidden.",
+            "discount_percent": 18,
+            "closes_in_minutes": 120,
+            "regular_price": 10.00,
+            "group_price": 8.20,
+            "minimum_units": 30,
+            "privacy_note": "Other merchants' identities never revealed",
         }
     ]
